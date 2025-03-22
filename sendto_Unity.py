@@ -1,17 +1,17 @@
+from ultralytics import YOLO
 import cv2
-import torch
 import socket
 import json
 
-# Load YOLO model
-model = torch.hub.load('ultralytics/yolov5', 'custom', path='best.pt')  # Replace with your model
+# Load YOLOv8 model
+model = YOLO('weights.pt')  # Provide full path if needed
 
-# Set up UDP socket
-UDP_IP = "127.0.0.1"  # Localhost (change if needed)
-UDP_PORT = 5065        # Port for communication
+# Setup UDP
+UDP_IP = "127.0.0.1"
+UDP_PORT = 5065
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-# Open webcam
+# Webcam
 cap = cv2.VideoCapture(0)
 
 while cap.isOpened():
@@ -19,28 +19,23 @@ while cap.isOpened():
     if not ret:
         break
 
-    # Perform YOLO detection
-    results = model(frame)
+    results = model(frame)[0]
 
-    for result in results.xyxy[0]:  # Bounding boxes
-        x1, y1, x2, y2, conf, cls = result.numpy()
-
-        # Compute center (X, Y) and depth (Z)
+    for box in results.boxes:
+        x1, y1, x2, y2 = box.xyxy[0].cpu().numpy()
         center_x = (x1 + x2) / 2
         center_y = (y1 + y2) / 2
-        depth_z = 50  # Placeholder (use real depth calculation)
+        depth_z = 50  # placeholder
 
-        # Create data dictionary
         data = {
             "x": float(center_x),
             "y": float(center_y),
             "z": float(depth_z),
-            "roll": 0.0,  # Placeholder
-            "pitch": 0.0,  # Placeholder
-            "yaw": 0.0  # Placeholder
+            "roll": 0.0,
+            "pitch": 0.0,
+            "yaw": 0.0
         }
 
-        # Send data as JSON
         message = json.dumps(data)
         sock.sendto(message.encode(), (UDP_IP, UDP_PORT))
 
