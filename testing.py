@@ -3,7 +3,7 @@ import os
 import cv2
 
 
-model = YOLO("weights.pt")
+model = YOLO("weights-roboflow3.pt")
 
 # temp_model = model
 
@@ -17,7 +17,7 @@ model = YOLO("weights.pt")
 #                2: 'medicine 3',
 #                3: 'medicine 4'}
 
-video = cv2.VideoCapture(1)
+video = cv2.VideoCapture(0)
 
 if not video.isOpened():
     print("Error: Could not open vidio")
